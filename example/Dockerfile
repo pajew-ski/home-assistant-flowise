@@ -1,12 +1,21 @@
-# https://developers.home-assistant.io/docs/add-ons/configuration#add-on-dockerfile
-ARG BUILD_FROM
-FROM $BUILD_FROM
+FROM node:18-alpine
 
-# Execute during the build of the image
-ARG TEMPIO_VERSION BUILD_ARCH
-RUN \
-    curl -sSLf -o /usr/bin/tempio \
-    "https://github.com/home-assistant/tempio/releases/download/${TEMPIO_VERSION}/tempio_${BUILD_ARCH}"
+USER root
 
-# Copy root filesystem
-COPY rootfs /
+RUN apk add --no-cache git
+RUN apk add --no-cache python3 py3-pip make g++
+# needed for pdfjs-dist
+RUN apk add --no-cache build-base cairo-dev pango-dev
+
+# Install Chromium
+RUN apk add --no-cache chromium
+
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# You can install a specific version like: flowise@1.0.0
+RUN npm install -g flowise
+
+WORKDIR /data
+
+CMD "flowise"
